@@ -1,20 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { listUsers } from '../../api/adminApi'
+import { getDashboard } from '../../api/dashboardApi'
 import { errorMessage } from '../../api/client'
 import Spinner from '../../components/Spinner'
 
 export default function AdminDashboard() {
-  const [users, setUsers] = useState(null)
+  const [summary, setSummary] = useState(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    listUsers()
-      .then(setUsers)
-      .catch((e) => setError(errorMessage(e, 'Could not load accounts.')))
+    getDashboard('ADMIN')
+      .then((data) => setSummary(data.summary))
+      .catch((e) => setError(errorMessage(e, 'Could not load dashboard.')))
   }, [])
-
-  const count = (pred) => (users ? users.filter(pred).length : 0)
 
   return (
     <section>
@@ -22,14 +20,14 @@ export default function AdminDashboard() {
       <p className="muted page-sub">Manage organizer access and approve seminars.</p>
 
       {error && <div className="alert alert-error">{error}</div>}
-      {!users && !error && <Spinner label="Loading accounts…" />}
+      {!summary && !error && <Spinner label="Loading dashboard…" />}
 
-      {users && (
+      {summary && (
         <div className="stat-grid">
-          <Stat label="Total accounts" value={users.length} />
-          <Stat label="Participants" value={count((u) => u.role === 'PARTICIPANT')} />
-          <Stat label="Organizers" value={count((u) => u.role === 'ORGANIZER')} />
-          <Stat label="Disabled" value={count((u) => u.enabled === false)} />
+          <Stat label="Total accounts" value={summary.totalUsers} />
+          <Stat label="Participants" value={summary.participants} />
+          <Stat label="Organizers" value={summary.organizers} />
+          <Stat label="Disabled" value={summary.disabled} />
         </div>
       )}
 
