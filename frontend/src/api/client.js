@@ -11,6 +11,20 @@ const api = axios.create({
   headers: { Accept: 'application/json' },
 })
 
+const SAFE_METHODS = ['get', 'head', 'options']
+
+function hasCsrfCookie() {
+  return document.cookie.split('; ').some((c) => c.startsWith('XSRF-TOKEN='))
+}
+
+api.interceptors.request.use(async (config) => {
+  const method = (config.method || 'get').toLowerCase()
+  if (!SAFE_METHODS.includes(method) && !hasCsrfCookie()) {
+    await axios.get(`${API_BASE}/api/auth/csrf`, { withCredentials: true })
+  }
+  return config
+})
+
 let onUnauthorized = () => {}
 export function setUnauthorizedHandler(fn) {
   onUnauthorized = fn
