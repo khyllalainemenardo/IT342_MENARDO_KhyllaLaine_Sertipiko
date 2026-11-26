@@ -52,7 +52,9 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .requestCache(cache -> cache.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login",
+                                "/api/auth/password/forgot", "/api/auth/password/reset").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/auth/password/reset/validate").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/csrf").permitAll()
                         .requestMatchers("/api/auth/logout", "/error").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

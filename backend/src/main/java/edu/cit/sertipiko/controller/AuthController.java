@@ -7,17 +7,13 @@ import edu.cit.sertipiko.entity.User;
 import edu.cit.sertipiko.exception.ApiException;
 import edu.cit.sertipiko.repository.UserRepository;
 import edu.cit.sertipiko.security.AppUserDetails;
+import edu.cit.sertipiko.security.SessionAuthenticator;
 import edu.cit.sertipiko.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.context.SecurityContextHolderStrategy;
-import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,21 +21,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     private final AuthService authService;
     private final UserRepository userRepository;
-    private final SecurityContextRepository securityContextRepository;
-    private final SecurityContextHolderStrategy holder = SecurityContextHolder.getContextHolderStrategy();
+    private final SessionAuthenticator sessionAuthenticator;
 
     public AuthController(AuthService authService,
                           UserRepository userRepository,
-                          SecurityContextRepository securityContextRepository) {
+                          SessionAuthenticator sessionAuthenticator) {
         this.authService = authService;
         this.userRepository = userRepository;
-        this.securityContextRepository = securityContextRepository;
+        this.sessionAuthenticator = sessionAuthenticator;
     }
 
     @GetMapping("/csrf")
@@ -58,18 +56,7 @@ public class AuthController {
                               HttpServletRequest httpRequest,
                               HttpServletResponse httpResponse) {
         User user = authService.authenticate(request);
-        AppUserDetails principal = AppUserDetails.from(user);
-
-        if (httpRequest.getSession(false) != null) {
-            httpRequest.changeSessionId();
-        }
-
-        SecurityContext context = holder.createEmptyContext();
-        context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
-                principal, null, principal.getAuthorities()));
-        holder.setContext(context);
-        securityContextRepository.saveContext(context, httpRequest, httpResponse);
-
+        sessionAuthenticator.signIn(user, Instant.now().truncatedTo(ChronoUnit.MICROS), httpRequest, httpResponse);
         return UserResponse.self(user);
     }
 

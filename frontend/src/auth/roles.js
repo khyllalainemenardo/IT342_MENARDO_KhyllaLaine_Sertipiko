@@ -39,6 +39,11 @@ export const NAV_ITEMS = {
   ],
 }
 
+export const ACCOUNT_ITEMS = [
+  { to: '/account/profile', label: 'My Profile' },
+  { to: '/account/password', label: 'Change Password' },
+]
+
 // Spring may return the role as "ADMIN" or "ROLE_ADMIN"; normalise both.
 export function normalizeRole(role) {
   if (!role) return null

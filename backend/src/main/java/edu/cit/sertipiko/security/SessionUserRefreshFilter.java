@@ -16,6 +16,7 @@ import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -36,7 +37,7 @@ public class SessionUserRefreshFilter extends OncePerRequestFilter {
         Authentication auth = holder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof AppUserDetails principal) {
             Optional<User> current = userRepository.findById(principal.getId());
-            if (current.isEmpty() || !current.get().isActive()) {
+            if (current.isEmpty() || !current.get().isActive() || isStale(principal, current.get())) {
                 holder.clearContext();
                 HttpSession session = request.getSession(false);
                 if (session != null) {
@@ -44,7 +45,7 @@ public class SessionUserRefreshFilter extends OncePerRequestFilter {
                 }
             } else if (current.get().getRole() != principal.getRole()
                     || !Objects.equals(current.get().getFullName(), principal.getFullName())) {
-                AppUserDetails refreshed = AppUserDetails.from(current.get());
+                AppUserDetails refreshed = AppUserDetails.from(current.get(), principal.getAuthenticatedAt());
                 SecurityContext context = holder.createEmptyContext();
                 context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
                         refreshed, null, refreshed.getAuthorities()));
@@ -53,5 +54,14 @@ public class SessionUserRefreshFilter extends OncePerRequestFilter {
             }
         }
         chain.doFilter(request, response);
+    }
+
+    private boolean isStale(AppUserDetails principal, User user) {
+        Instant changedAt = user.getPasswordChangedAt();
+        if (changedAt == null) {
+            return false;
+        }
+        Instant authenticatedAt = principal.getAuthenticatedAt();
+        return authenticatedAt == null || authenticatedAt.isBefore(changedAt);
     }
 }

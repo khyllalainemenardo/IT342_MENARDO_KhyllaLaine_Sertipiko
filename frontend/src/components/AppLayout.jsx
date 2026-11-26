@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
-import { NAV_ITEMS, ROLE_LABELS } from '../auth/roles'
+import { ACCOUNT_ITEMS, NAV_ITEMS, ROLE_LABELS } from '../auth/roles'
 import Logo from './Logo'
 import Avatar from './Avatar'
 
@@ -47,6 +47,14 @@ export default function AppLayout() {
           <nav aria-label={`${ROLE_LABELS[user.role]} navigation`}>
             {items.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.end} className="nav-link" onClick={() => setMenuOpen(false)}>
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+          <nav aria-label="Account" className="nav-section">
+            <p className="nav-heading">Account</p>
+            {ACCOUNT_ITEMS.map((item) => (
+              <NavLink key={item.to} to={item.to} className="nav-link" onClick={() => setMenuOpen(false)}>
                 {item.label}
               </NavLink>
             ))}

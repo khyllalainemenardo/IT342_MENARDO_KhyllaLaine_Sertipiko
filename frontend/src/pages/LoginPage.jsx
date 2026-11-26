@@ -20,7 +20,9 @@ export default function LoginPage() {
 
   const notice = location.state?.registered
     ? 'Account created. You can now sign in.'
-    : location.state?.loggedOut
+    : location.state?.passwordReset
+      ? 'Your password has been reset. Sign in with your new password.'
+      : location.state?.loggedOut
       ? 'You have been signed out.'
       : ''
 
@@ -89,6 +91,7 @@ export default function LoginPage() {
           error={fieldErrors.password}
           autoFocus={Boolean(email)}
         />
+        <Link className="link-right" to="/forgot-password">Forgot password?</Link>
 
         <button className="btn btn-primary btn-block" type="submit" disabled={submitting}>
           {submitting ? 'Signing in…' : 'Sign in'}

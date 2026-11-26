@@ -6,6 +6,10 @@ import AppLayout from './components/AppLayout'
 import ComingSoon from './components/ComingSoon'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
+import ProfilePage from './pages/account/ProfilePage'
+import ChangePasswordPage from './pages/account/ChangePasswordPage'
 import UnauthorizedPage from './pages/UnauthorizedPage'
 import NotFoundPage from './pages/NotFoundPage'
 import ParticipantDashboard from './pages/participant/ParticipantDashboard'
@@ -22,11 +26,20 @@ export default function App() {
           {/* Public */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
           {/* Any signed-in user → their own dashboard */}
           <Route path="/" element={<RoleRedirect />} />
           <Route path="/dashboard" element={<RoleRedirect />} />
+
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AppLayout />}>
+              <Route path="/account/profile" element={<ProfilePage />} />
+              <Route path="/account/password" element={<ChangePasswordPage />} />
+            </Route>
+          </Route>
 
           {/* Participant */}
           <Route element={<ProtectedRoute roles={[ROLES.PARTICIPANT]} />}>
