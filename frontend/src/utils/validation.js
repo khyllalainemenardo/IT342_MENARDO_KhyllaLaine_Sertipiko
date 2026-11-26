@@ -43,3 +43,32 @@ export function validateRegistration(form) {
 
   return errors
 }
+
+export const USER_TYPES = [
+  { value: 'STUDENT', label: 'Student' },
+  { value: 'FACULTY', label: 'Faculty' },
+  { value: 'STAFF', label: 'Staff' },
+]
+
+export function validatePasswordPair(password, confirm, passwordField = 'newPassword', confirmField = 'confirmPassword') {
+  const errors = {}
+  if (!password) errors[passwordField] = 'New password is required.'
+  else if (password.length > 72) errors[passwordField] = 'Password must be at most 72 characters.'
+  else if (!PASSWORD_RULES.every((r) => r.test(password)))
+    errors[passwordField] = 'Password does not meet the requirements below.'
+
+  if (!confirm) errors[confirmField] = 'Please confirm your new password.'
+  else if (confirm !== password) errors[confirmField] = 'Passwords do not match.'
+  return errors
+}
+
+export function validateProfile(form) {
+  const errors = {}
+  const dept = form.department.trim()
+  if (!dept) errors.department = 'Department or organization is required.'
+  else if (dept.length > 120) errors.department = 'Department or organization must be at most 120 characters.'
+  else if (!/^[\p{L}\p{N} .,'&()/-]+$/u.test(dept))
+    errors.department = 'Use letters, numbers, spaces, and basic punctuation only.'
+  if (!form.userType) errors.userType = 'Please choose whether you are a student, faculty, or staff.'
+  return errors
+}

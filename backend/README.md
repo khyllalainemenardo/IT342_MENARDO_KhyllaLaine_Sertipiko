@@ -47,6 +47,32 @@ mvnw.cmd spring-boot:run        (Windows)
 The API starts on http://localhost:8080. Then start the frontend (`npm run dev` in
 `frontend`) and open http://localhost:5173.
 
+## Increment 2 — Profile, Forgot/Reset Password, Change Password
+
+Run `db/migration/V2__profile_and_password_reset.sql` in the Supabase SQL Editor once
+(adds `users.password_changed_at` and the `password_reset_tokens` table, RLS enabled).
+
+| Requirement | Implementation |
+|---|---|
+| View/edit own profile | `GET/PUT /api/profile`. Always uses the signed-in user's ID from the session, never an ID from the request, so nobody can edit another user's profile. Editable: department/organization and user type. Name and email stay locked (FR-04). |
+| Forgot password | `POST /api/auth/password/forgot`. Always returns the same message, so it never reveals whether an email is registered. Max 3 requests per email per 15 minutes. |
+| Secure reset token | 256-bit random token, only its **SHA-256 hash** is stored; expires after `RESET_TOKEN_MINUTES` (default 30); **single-use**; requesting a new link invalidates older ones. Link is emailed through **Brevo**. |
+| Reset password | `GET /api/auth/password/reset/validate?token=` then `POST /api/auth/password/reset`. New password is validated and BCrypt-hashed. |
+| Change password | `POST /api/auth/password/change` requires the current password (5 wrong attempts → 15-minute lock), validates + confirms the new one, and rejects reusing the current password. |
+| Old password stops working | The stored hash is replaced, and `password_changed_at` is updated: every session that signed in before that moment is signed out on its next request. The session that made the change stays signed in. |
+
+### Email (Brevo)
+Add to `.env`:
+```
+BREVO_API_KEY=xkeysib-...
+MAIL_FROM_EMAIL=your-verified-sender@example.com
+MAIL_FROM_NAME=Sertipiko
+FRONTEND_URL=http://localhost:5173
+```
+The sender email must be verified in Brevo (Senders, Domains & Dedicated IPs → Senders).
+If `BREVO_API_KEY` is empty, the reset link is printed in the backend console instead, so the
+flow can still be demonstrated locally.
+
 ## How the requirements are met
 
 | Requirement | Implementation |
@@ -77,6 +103,12 @@ The API starts on http://localhost:8080. Then start the frontend (`npm run dev` 
 | PATCH | `/api/admin/users/{id}/role` | ADMIN | `{ "role": "ORGANIZER" }` or `PARTICIPANT` |
 | PATCH | `/api/admin/users/{id}/status` | ADMIN | `{ "enabled": false }` |
 | PATCH | `/api/admin/users/{id}/name` | ADMIN | `{ "fullName": "..." }` (FR-06 name correction) |
+| GET | `/api/profile` | Signed in | Own profile |
+| PUT | `/api/profile` | Signed in | `{ department, userType }` |
+| POST | `/api/auth/password/change` | Signed in | `{ currentPassword, newPassword, confirmPassword }` |
+| POST | `/api/auth/password/forgot` | Public | `{ email }` → `202` (same response either way) |
+| GET | `/api/auth/password/reset/validate?token=` | Public | `204` valid, `400` invalid/expired/used |
+| POST | `/api/auth/password/reset` | Public | `{ token, newPassword, confirmPassword }` |
 
 Errors are JSON: `{ "status": 400, "message": "...", "errors": { "field": "message" } }`.
 
@@ -92,7 +124,7 @@ src/main/java/edu/cit/sertipiko/
   repository/   UserRepository
   security/     AppUserDetails, LoginAttemptService, SessionUserRefreshFilter, CSRF + JSON handlers
   service/      AuthService, AdminUserService, TokenGenerator
-db/migration/   V1__create_users.sql
+db/migration/   V1__create_users.sql, V2__profile_and_password_reset.sql
 ```
 
 ## Troubleshooting

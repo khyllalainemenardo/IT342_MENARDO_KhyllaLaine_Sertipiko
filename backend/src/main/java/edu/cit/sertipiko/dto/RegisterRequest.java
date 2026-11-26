@@ -22,9 +22,8 @@ public record RegisterRequest(
         String department,
 
         @NotBlank(message = "Password is required.")
-        @Size(min = 8, max = 72, message = "Password must be 8-72 characters.")
-        @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$",
-                message = "Password must contain an uppercase letter, a lowercase letter, and a number.")
+        @Size(min = PasswordRules.MIN, max = PasswordRules.MAX, message = PasswordRules.SIZE_MESSAGE)
+        @Pattern(regexp = PasswordRules.PATTERN, message = PasswordRules.PATTERN_MESSAGE)
         String password,
 
         @NotBlank(message = "Please confirm your password.")
