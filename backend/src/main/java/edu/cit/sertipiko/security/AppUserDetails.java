@@ -6,12 +6,13 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 
 public class AppUserDetails implements UserDetails {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
 
     private final Long id;
     private final String email;
@@ -19,24 +20,27 @@ public class AppUserDetails implements UserDetails {
     private final Role role;
     private final boolean enabled;
     private final String passwordHash;
+    private final Instant authenticatedAt;
 
-    private AppUserDetails(Long id, String email, String fullName, Role role, boolean enabled, String passwordHash) {
+    private AppUserDetails(Long id, String email, String fullName, Role role, boolean enabled,
+                           String passwordHash, Instant authenticatedAt) {
         this.id = id;
         this.email = email;
         this.fullName = fullName;
         this.role = role;
         this.enabled = enabled;
         this.passwordHash = passwordHash;
+        this.authenticatedAt = authenticatedAt;
     }
 
-    public static AppUserDetails from(User user) {
+    public static AppUserDetails from(User user, Instant authenticatedAt) {
         return new AppUserDetails(user.getId(), user.getEmail(), user.getFullName(),
-                user.getRole(), user.isActive(), null);
+                user.getRole(), user.isActive(), null, authenticatedAt);
     }
 
     public static AppUserDetails withPassword(User user) {
         return new AppUserDetails(user.getId(), user.getEmail(), user.getFullName(),
-                user.getRole(), user.isActive(), user.getPasswordHash());
+                user.getRole(), user.isActive(), user.getPasswordHash(), null);
     }
 
     public Long getId() {
@@ -49,6 +53,10 @@ public class AppUserDetails implements UserDetails {
 
     public Role getRole() {
         return role;
+    }
+
+    public Instant getAuthenticatedAt() {
+        return authenticatedAt;
     }
 
     @Override

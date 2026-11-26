@@ -152,6 +152,15 @@ button { font: inherit; }
 .nav-link:hover { background: var(--bg); }
 .nav-link.active { background: var(--brand-soft); color: var(--brand); font-weight: 700; }
 .logout-btn { margin-top: auto; }
+.nav-section { border-top: 1px solid var(--border); padding-top: 0.75rem; }
+.nav-heading { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 0 0.8rem 0.35rem; }
+.form-card { display: flex; flex-direction: column; gap: 1rem; max-width: 560px; }
+.form-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.readonly-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.9rem; margin: 0; }
+.readonly-grid dt { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.readonly-grid dd { margin: 0; font-weight: 500; word-break: break-word; }
+select.input { appearance: auto; }
+.link-right { align-self: flex-end; font-size: 0.85rem; margin-top: -0.5rem; }
 .scrim { display: none; }
 
 .content { flex: 1; padding: 1.75rem; max-width: 1100px; width: 100%; min-width: 0; }
